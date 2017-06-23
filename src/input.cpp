@@ -1,5 +1,6 @@
 #include "input.h"
 #include <iostream>
+#include "work.h"
 
 
 InputManager::InputManager(sf::Window & window, DataLock & window_lock) :

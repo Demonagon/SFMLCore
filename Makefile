@@ -23,7 +23,7 @@ CC = clang++
 
 INCLUDE = -I/usr/local/include -I/usr/include -I../game-core/lib
 FLAGS = -L/usr/local/lib -L/usr/lib -L../game-core/lib -Wall -std=c++11 -pthread
-LIBS = -lgame-core -lsfml-system -lsfml-graphics -lsfml-window -lsfml-audio
+LIBS = -lgame-core -lsfml-system -lsfml-graphics -lsfml-window -lsfml-audio -lglut -lGL
 
 #Pour chaque a.c dans CREP, on considère le module a
 RAW_CODE = $(shell echo $(CREP)/*.$(CODE_FORMAT))
@@ -48,10 +48,10 @@ vpath %.$(OBJECT_FORMAT) $(OREP)
 all: $(SRC) $(BIN)
 
 $(BIN): $(OBJ)
-	$(CC) $(FLAGS) $(OBJ_OUT) $(INCLUDE) -o $(BREP)/$@
+	$(CC) $(FLAGS) $(OBJ_OUT) $(INCLUDE) -o $(BREP)/$@ $(LIBS)
 
 %.$(OBJECT_FORMAT): %.$(CODE_FORMAT)
-	$(CC) $(FLAGS) $< $(INCLUDE) -c -o $(OREP)/$@
+	$(CC) $(FLAGS) $< $(INCLUDE) -c -o $(OREP)/$@ $(LIBS)
 
 lib: $(LIB_OUT)
 
