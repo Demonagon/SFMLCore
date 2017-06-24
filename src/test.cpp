@@ -1,6 +1,7 @@
 #include "test.h"
 #include "terrain.h"
 #include "input.h"
+#include "gradiant.h"
 #include "SFML/Window.hpp"
 #include "SFML/OpenGL.hpp"
 #include "SFML/Graphics.hpp"
@@ -8,8 +9,9 @@
 #include "simple_artist.h"
 #include "simple_shapes.h"
 #include "collector.h"
+#include "scene.h"
 
-#include<cmath>
+#include <cmath>
 
 class SimpleRectangleController : public Collector<sf::Event &> {
 	public :
@@ -58,14 +60,16 @@ void perspectiveGL( GLdouble fovY, GLdouble aspect, GLdouble zNear, GLdouble zFa
 void makeProjectionMatrix() {
 	glLoadIdentity();
  
-	double cavalier[] = {
-    	1, 0, cos(M_PI/4), 0,
-    	0, 1, sin(M_PI/4), 0,
+	/*double cavalier[] = {
+    	1, 0, cos(M_PI), 0,
+    	0, 1, sin(M_PI/16), 0,
     	0, 0, 1,           0,
     	0, 0, 0,           1};
  
-	glMultTransposeMatrixd(cavalier);
-	glOrtho(-100, 100, -100, 100, 1.f, 300.0f);
+	glMultTransposeMatrixd(cavalier);*/
+	//glRotatef(45, 0.f, 1.f, 0.f);
+	//glRotatef(10, 1.f, 0.f, 0.f);
+	glOrtho(-100, 100, -100, 100, 1.f, 1000.0f);
 
     //perspectiveGL(90.f, 1.f, 1.f, 300.0f);//fov, aspect, zNear, zFar
 }
@@ -90,6 +94,9 @@ int isometric_main()
 
     bool rotate=true;
 	float angle;
+	float other_angle;
+	//float z = -300.f;
+	//float x = 0.f;
 	
 	// Start game loop
 	while (App.isOpen())
@@ -119,19 +126,27 @@ int isometric_main()
         // Apply some transformations for the cube
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
-        glTranslatef(0.f, 0.f, -200.f);
 		
 		if(rotate){
-			angle=Clock.getElapsedTime().asSeconds();
+			//z = -300.f - (((int) Clock.getElapsedTime().asSeconds()) % 100);
+			angle= Clock.getElapsedTime().asSeconds();
+			other_angle = cos(Clock.getElapsedTime().asSeconds());
 		}
-		glRotatef(angle * 50, 1.f, 0.f, 0.f);
-		glRotatef(angle * 30, 0.f, 1.f, 0.f);
-		glRotatef(angle * 90, 0.f, 0.f, 1.f);
-		//TMP mouvement de caméra
-		/*glMatrixMode(GL_PROJECTION);
-		makeProjectionMatrix();
-		glRotatef(angle * 100, 0.f, 1.f, 0.f);
-        glMatrixMode(GL_MODELVIEW);*/
+			angle=Clock.getElapsedTime().asSeconds();
+		//x = Clock.getElapsedTime().asSeconds() -
+		//	10 * ( (int) Clock.getElapsedTime().asSeconds() / 10 );
+        glTranslatef(0.f, 0.f, -300.f);
+
+		double scale_value = ( Clock.getElapsedTime().asSeconds() -
+			3 * ( (int) Clock.getElapsedTime().asSeconds() / 3 ) ) / 3.0;
+		if(scale_value <= 0.1) scale_value = 0;
+		double scale = Gradiant::polGradiant(1, 0, scale_value, 2);
+		glScalef(scale, scale, 1);
+
+		glRotatef(other_angle * 50, 1.f, 0.f, 0.f);
+		glRotatef(angle * 45, 0.f, 1.f, 0.f);
+		//glRotatef(20, 1.f, 0.f, 0.f);
+		//glRotatef(45, 0.f, 1.f, 0.f);
 			
 		
 		 
@@ -182,6 +197,79 @@ int isometric_main()
     return EXIT_SUCCESS;
 }
 
+class Cube : public SceneObject {
+	public :
+		Cube(PrintingRegister * p_register) : SceneObject(p_register) {}
+
+		virtual void drawObject() {
+		    glBegin(GL_QUADS);
+
+				glColor3i(0,1,1);
+		        glVertex3f(-50.f, -50.f, -50.f);
+		        glVertex3f(-50.f,  50.f, -50.f);
+		        glVertex3f( 50.f,  50.f, -50.f);
+		        glVertex3f( 50.f, -50.f, -50.f);
+
+				glColor3f(0,0,1);
+		        glVertex3f(-50.f, -50.f, 50.f);
+		        glVertex3f(-50.f,  50.f, 50.f);
+		        glVertex3f( 50.f,  50.f, 50.f);
+		        glVertex3f( 50.f, -50.f, 50.f);
+
+				glColor3f(1,0,1);
+		        glVertex3f(-50.f, -50.f, -50.f);
+		        glVertex3f(-50.f,  50.f, -50.f);
+		        glVertex3f(-50.f,  50.f,  50.f);
+		        glVertex3f(-50.f, -50.f,  50.f);
+
+				glColor3f(0,1,0);
+		        glVertex3f(50.f, -50.f, -50.f);
+		        glVertex3f(50.f,  50.f, -50.f);
+		        glVertex3f(50.f,  50.f,  50.f);
+		        glVertex3f(50.f, -50.f,  50.f);
+
+				glColor3f(1,1,0);
+		        glVertex3f(-50.f, -50.f,  50.f);
+		        glVertex3f(-50.f, -50.f, -50.f);
+		        glVertex3f( 50.f, -50.f, -50.f);
+		        glVertex3f( 50.f, -50.f,  50.f);
+
+				glColor3f(1,0,0);
+		        glVertex3f(-50.f, 50.f,  50.f);
+		        glVertex3f(-50.f, 50.f, -50.f);
+		        glVertex3f( 50.f, 50.f, -50.f);
+		        glVertex3f( 50.f, 50.f,  50.f);
+		    glEnd();
+		}
+};
+
+int scene_main() {
+
+    sf::RenderWindow window(sf::VideoMode(800, 600, 32), "SFML OpenGL");
+
+	PrintingRegister reg;
+	Scene scene(&reg);
+	Cube cube(&reg);
+
+	scene.placeScene();
+	window.display();
+
+	while (window.isOpen())
+    {
+        sf::Event Event;
+        while (window.waitEvent(Event))
+        {
+            if (Event.type == sf::Event::Closed)
+                window.close();
+            if ((Event.type == sf::Event::KeyPressed) && (Event.key.code == sf::Keyboard::Escape))
+                window.close();
+ 
+		}
+    }
+
+	return 0;
+}
+
 int main()
 {
     /*sf::RenderWindow window(sf::VideoMode(200, 200), "SFML works!");
@@ -226,5 +314,5 @@ int main()
 
 	m.inputLoop();*/
 
-	return isometric_main();
+	return scene_main();
 }
