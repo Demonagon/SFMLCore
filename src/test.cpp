@@ -10,6 +10,8 @@
 #include "simple_shapes.h"
 #include "collector.h"
 #include "scene.h"
+#include "collector.h"
+#include "input.h"
 
 #include <cmath>
 
@@ -69,7 +71,7 @@ void makeProjectionMatrix() {
 	glMultTransposeMatrixd(cavalier);*/
 	//glRotatef(45, 0.f, 1.f, 0.f);
 	//glRotatef(10, 1.f, 0.f, 0.f);
-	glOrtho(-100, 100, -100, 100, 1.f, 1000.0f);
+	glOrtho(-100, +100, -100, +100, 1.f, 600.0f);
 
     //perspectiveGL(90.f, 1.f, 1.f, 300.0f);//fov, aspect, zNear, zFar
 }
@@ -77,7 +79,9 @@ void makeProjectionMatrix() {
 int isometric_main()
 {
     // Create the main window
-    sf::RenderWindow App(sf::VideoMode(800, 600, 32), "SFML OpenGL");
+
+	sf::ContextSettings context(24, 8, 2, 3, 3);
+    sf::RenderWindow App(sf::VideoMode(800, 600, 32), "SFML OpenGL", 7U, context);
 
     // Create a clock for measuring time elapsed
     sf::Clock Clock;
@@ -87,6 +91,14 @@ int isometric_main()
     glClearColor(0.3f, 0.3f, 0.3f, 0.f);
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
+
+	sf::ContextSettings windowSettings = App.getSettings();
+	std::cout
+	<< "windowSettings.DepthBits: " << windowSettings.depthBits << "\n"
+	<<  "windowSettings.StencilBits: " << windowSettings.stencilBits << "\n"
+	<< "windowSettings.AntialiasingLevel: " << windowSettings.antialiasingLevel << "\n"
+	<< "windowSettings.MajorVersion: " << windowSettings.majorVersion << "\n"
+	<< "windowSettings.MinorVersion: " << windowSettings.minorVersion << "\n";
 
     //// Setup a perspective projection & Camera position
 	glMatrixMode(GL_PROJECTION);
@@ -198,43 +210,59 @@ int isometric_main()
 }
 
 class Cube : public SceneObject {
+	private :
+		float m_red, m_green, m_blue;
 	public :
-		Cube(PrintingRegister * p_register) : SceneObject(p_register) {}
+		Cube(float red, float green, float blue,
+			 PrintingRegister * p_register) :
+			SceneObject(p_register),
+			m_red(red), m_green(green), m_blue(blue) {}
 
 		virtual void drawObject() {
 		    glBegin(GL_QUADS);
-
-				glColor3i(0,1,1);
+				glColor3f(m_red   * 1.f,
+						  m_green * 1.f,
+						  m_blue  * 1.f);
 		        glVertex3f(-50.f, -50.f, -50.f);
 		        glVertex3f(-50.f,  50.f, -50.f);
 		        glVertex3f( 50.f,  50.f, -50.f);
 		        glVertex3f( 50.f, -50.f, -50.f);
 
-				glColor3f(0,0,1);
+				glColor3f(m_red   * .9f,
+						  m_green * .9f,
+						  m_blue  * .9f);
 		        glVertex3f(-50.f, -50.f, 50.f);
 		        glVertex3f(-50.f,  50.f, 50.f);
 		        glVertex3f( 50.f,  50.f, 50.f);
 		        glVertex3f( 50.f, -50.f, 50.f);
 
-				glColor3f(1,0,1);
+				glColor3f(m_red   * .8f,
+						  m_green * .8f,
+						  m_blue  * .8f);
 		        glVertex3f(-50.f, -50.f, -50.f);
 		        glVertex3f(-50.f,  50.f, -50.f);
 		        glVertex3f(-50.f,  50.f,  50.f);
 		        glVertex3f(-50.f, -50.f,  50.f);
 
-				glColor3f(0,1,0);
+				glColor3f(m_red   * .7f,
+						  m_green * .7f,
+						  m_blue  * .7f);
 		        glVertex3f(50.f, -50.f, -50.f);
 		        glVertex3f(50.f,  50.f, -50.f);
 		        glVertex3f(50.f,  50.f,  50.f);
 		        glVertex3f(50.f, -50.f,  50.f);
 
-				glColor3f(1,1,0);
+				glColor3f(m_red   * .6f,
+						  m_green * .6f,
+						  m_blue  * .6f);
 		        glVertex3f(-50.f, -50.f,  50.f);
 		        glVertex3f(-50.f, -50.f, -50.f);
 		        glVertex3f( 50.f, -50.f, -50.f);
 		        glVertex3f( 50.f, -50.f,  50.f);
 
-				glColor3f(1,0,0);
+				glColor3f(m_red   * .5f,
+						  m_green * .5f,
+						  m_blue  * .5f);
 		        glVertex3f(-50.f, 50.f,  50.f);
 		        glVertex3f(-50.f, 50.f, -50.f);
 		        glVertex3f( 50.f, 50.f, -50.f);
@@ -243,29 +271,81 @@ class Cube : public SceneObject {
 		}
 };
 
+class Controller : public Collector<sf::Event&> {
+	private :
+		sf::RenderWindow & m_window;
+		std::atomic<bool> & m_end;
+		InputManager & m_i;
+
+	public :
+		Controller(sf::RenderWindow & window, std::atomic<bool> & end,
+				   InputManager & i) :
+			m_window(window), m_end(end), m_i(i) {}
+
+		void collect(sf::Event & e) {
+			if (e.type == sf::Event::Closed) {
+				m_end = true;
+				m_window.close();
+				m_i.interruptLoop();
+			}
+			if ((e.type == sf::Event::KeyPressed) && (e.key.code == sf::Keyboard::Escape)) {
+				m_end = true;
+				m_window.close();
+				m_i.interruptLoop();
+			}
+		}
+
+		void discard(sf::Event & e) {}
+};
+
 int scene_main() {
 
-    sf::RenderWindow window(sf::VideoMode(800, 600, 32), "SFML OpenGL");
+	sf::ContextSettings context(24, 8, 2, 3, 3);
+    sf::RenderWindow window(sf::VideoMode(800, 600, 32), "SFML OpenGL", 7U, context);
+	MutexDataLock window_lock;
+
+	InputManager inputManager(window, window_lock);
 
 	PrintingRegister reg;
-	Scene scene(&reg);
-	Cube cube(&reg);
+	Scene scene(&reg, inputManager);
+
+	Cube cube1(1.f, 0.f, 0.f, &reg);
+	Cube cube2(0.f, 1.f, 0.f, &reg);
+	Cube cube3(0.f, 0.f, 1.f, &reg);
+
+	cube2.setX(60);
+	cube3.setZ(60);
+
+	cube1.setScale(.5f);
+	cube2.setScale(.5f);
+	cube3.setScale(.5f);
+
+	std::atomic<bool> end(false);
+
+	Controller controller(window, end, inputManager);
+
+	inputManager.addCollector( controller );
 
 	scene.placeScene();
 	window.display();
+	
+	window.setActive(false);
 
-	while (window.isOpen())
+	inputManager.inputLoop();
+
+	/*scene.placeScene();
+	window.display();*/
+
+	//while(! end) {}
+
+	/*while (window.isOpen())
     {
         sf::Event Event;
         while (window.waitEvent(Event))
         {
-            if (Event.type == sf::Event::Closed)
-                window.close();
-            if ((Event.type == sf::Event::KeyPressed) && (Event.key.code == sf::Keyboard::Escape))
-                window.close();
  
 		}
-    }
+    }*/
 
 	return 0;
 }

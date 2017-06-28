@@ -21,6 +21,10 @@ OrthogonalCamera::OrthogonalCamera(float left, float right,
 
 void OrthogonalCamera::placeCamera() {
 	glMatrixMode(GL_PROJECTION);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
+
+	//glFrustum(-100, +100, -100, +100, +1, +1000);
 	glOrtho(m_left, m_right, m_top, m_bottom, m_near, m_far);
+	//glOrtho(-100.f, +100.f, -100.f, +100.f, +1.f, +1000.f);
 }
