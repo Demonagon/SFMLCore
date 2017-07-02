@@ -20,7 +20,9 @@ InputManager::inputLoop() {
 	while( ! m_interrupted ) {
 		m_interrupt_lock.unlock();
 		m_window_lock.lock();
+		//m_window.setActive(true);
 		bool is_event = m_window.pollEvent(event);
+		//m_window.setActive(false);
 		m_window_lock.unlock();
 		if(is_event)
 			provide(event);

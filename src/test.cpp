@@ -12,6 +12,7 @@
 #include "scene.h"
 #include "collector.h"
 #include "input.h"
+#include "artist.h"
 
 #include <cmath>
 
@@ -219,79 +220,81 @@ class Cube : public SceneObject {
 			m_red(red), m_green(green), m_blue(blue) {}
 
 		virtual void drawObject() {
-		    glBegin(GL_QUADS);
-				glColor3f(m_red   * 1.f,
-						  m_green * 1.f,
-						  m_blue  * 1.f);
-		        glVertex3f(-50.f, -50.f, -50.f);
-		        glVertex3f(-50.f,  50.f, -50.f);
-		        glVertex3f( 50.f,  50.f, -50.f);
-		        glVertex3f( 50.f, -50.f, -50.f);
+			glBegin(GL_QUADS);
 
-				glColor3f(m_red   * .9f,
-						  m_green * .9f,
-						  m_blue  * .9f);
-		        glVertex3f(-50.f, -50.f, 50.f);
-		        glVertex3f(-50.f,  50.f, 50.f);
-		        glVertex3f( 50.f,  50.f, 50.f);
-		        glVertex3f( 50.f, -50.f, 50.f);
+			glColor3f(m_red   * 1.f,
+					  m_green * 1.f,
+					  m_blue  * 1.f);
+		    glVertex3f(-50.f, -50.f, -50.f);
+		    glVertex3f(-50.f,  50.f, -50.f);
+		    glVertex3f( 50.f,  50.f, -50.f);
+		    glVertex3f( 50.f, -50.f, -50.f);
 
-				glColor3f(m_red   * .8f,
-						  m_green * .8f,
-						  m_blue  * .8f);
-		        glVertex3f(-50.f, -50.f, -50.f);
-		        glVertex3f(-50.f,  50.f, -50.f);
-		        glVertex3f(-50.f,  50.f,  50.f);
-		        glVertex3f(-50.f, -50.f,  50.f);
+			glColor3f(m_red   * .9f,
+					  m_green * .9f,
+					  m_blue  * .9f);
+		    glVertex3f(-50.f, -50.f, 50.f);
+		    glVertex3f(-50.f,  50.f, 50.f);
+		    glVertex3f( 50.f,  50.f, 50.f);
+		    glVertex3f( 50.f, -50.f, 50.f);
 
-				glColor3f(m_red   * .7f,
-						  m_green * .7f,
-						  m_blue  * .7f);
-		        glVertex3f(50.f, -50.f, -50.f);
-		        glVertex3f(50.f,  50.f, -50.f);
-		        glVertex3f(50.f,  50.f,  50.f);
-		        glVertex3f(50.f, -50.f,  50.f);
+			glColor3f(m_red   * .8f,
+					  m_green * .8f,
+					  m_blue  * .8f);
+		    glVertex3f(-50.f, -50.f, -50.f);
+		    glVertex3f(-50.f,  50.f, -50.f);
+		    glVertex3f(-50.f,  50.f,  50.f);
+		    glVertex3f(-50.f, -50.f,  50.f);
 
-				glColor3f(m_red   * .6f,
-						  m_green * .6f,
-						  m_blue  * .6f);
-		        glVertex3f(-50.f, -50.f,  50.f);
-		        glVertex3f(-50.f, -50.f, -50.f);
-		        glVertex3f( 50.f, -50.f, -50.f);
-		        glVertex3f( 50.f, -50.f,  50.f);
+			glColor3f(m_red   * .7f,
+					  m_green * .7f,
+					  m_blue  * .7f);
+		    glVertex3f(50.f, -50.f, -50.f);
+		    glVertex3f(50.f,  50.f, -50.f);
+		    glVertex3f(50.f,  50.f,  50.f);
+		    glVertex3f(50.f, -50.f,  50.f);
 
-				glColor3f(m_red   * .5f,
-						  m_green * .5f,
-						  m_blue  * .5f);
-		        glVertex3f(-50.f, 50.f,  50.f);
-		        glVertex3f(-50.f, 50.f, -50.f);
-		        glVertex3f( 50.f, 50.f, -50.f);
-		        glVertex3f( 50.f, 50.f,  50.f);
-		    glEnd();
+			glColor3f(m_red   * .6f,
+					  m_green * .6f,
+					  m_blue  * .6f);
+		    glVertex3f(-50.f, -50.f,  50.f);
+		    glVertex3f(-50.f, -50.f, -50.f);
+		    glVertex3f( 50.f, -50.f, -50.f);
+		    glVertex3f( 50.f, -50.f,  50.f);
+
+			glColor3f(m_red   * .5f,
+					  m_green * .5f,
+					  m_blue  * .5f);
+		    glVertex3f(-50.f, 50.f,  50.f);
+		    glVertex3f(-50.f, 50.f, -50.f);
+		    glVertex3f( 50.f, 50.f, -50.f);
+		    glVertex3f( 50.f, 50.f,  50.f);
+
+			glEnd();
 		}
 };
 
 class Controller : public Collector<sf::Event&> {
 	private :
-		sf::RenderWindow & m_window;
-		std::atomic<bool> & m_end;
+		Artist & m_artist;
 		InputManager & m_i;
 
 	public :
-		Controller(sf::RenderWindow & window, std::atomic<bool> & end,
-				   InputManager & i) :
-			m_window(window), m_end(end), m_i(i) {}
+		Controller(Artist & artist, InputManager & i) :
+			m_artist(artist), m_i(i) {
+			m_i.addCollector(*this);
+		}
 
 		void collect(sf::Event & e) {
 			if (e.type == sf::Event::Closed) {
-				m_end = true;
-				m_window.close();
 				m_i.interruptLoop();
+				m_artist.stop();
+				m_artist.close();
 			}
 			if ((e.type == sf::Event::KeyPressed) && (e.key.code == sf::Keyboard::Escape)) {
-				m_end = true;
-				m_window.close();
 				m_i.interruptLoop();
+				m_artist.stop();
+				m_artist.close();
 			}
 		}
 
@@ -299,15 +302,31 @@ class Controller : public Collector<sf::Event&> {
 };
 
 int scene_main() {
+	Artist artist(1200, 400);
+	InputManager manager(artist.getWindow(), artist.getWindowLock() );
+	artist.setInputManager(manager);
 
-	sf::ContextSettings context(24, 8, 2, 3, 3);
+	Cube cube1(1.f, 0.f, 0.f, &artist.getPrintingRegister());
+	Cube cube2(0.f, 1.f, 0.f, &artist.getPrintingRegister());
+	Cube cube3(0.f, 0.f, 1.f, &artist.getPrintingRegister());
+
+	cube2.setX(60);
+	cube3.setZ(60);
+
+	cube1.setScale(.5f);
+	cube2.setScale(.5f);
+	cube3.setScale(.5f);
+
+	Controller controller(artist, manager);
+
+	artist.start();
+	manager.inputLoop();
+
+	/*sf::ContextSettings context(24, 8, 2, 3, 3);
     sf::RenderWindow window(sf::VideoMode(800, 600, 32), "SFML OpenGL", 7U, context);
 	MutexDataLock window_lock;
 
 	InputManager inputManager(window, window_lock);
-
-	PrintingRegister reg;
-	Scene scene(&reg, inputManager);
 
 	Cube cube1(1.f, 0.f, 0.f, &reg);
 	Cube cube2(0.f, 1.f, 0.f, &reg);
@@ -331,7 +350,7 @@ int scene_main() {
 	
 	window.setActive(false);
 
-	inputManager.inputLoop();
+	inputManager.inputLoop();*/
 
 	/*scene.placeScene();
 	window.display();*/
@@ -391,6 +410,8 @@ int main()
 	SimpleRectangleController c(r2, m, artist);
 
 	artist.getWindow().setActive(false);
+
+	artist.start();
 
 	m.inputLoop();*/
 

@@ -5,6 +5,7 @@
 #include "index.h"
 #include "collector.h"
 #include "input.h"
+#include <SFML/Graphics.hpp>
 #include <list>
 
 class SceneObject;
@@ -77,7 +78,8 @@ class SceneMouseController : public Collector<sf::Event &> {
 		float m_anchor_x_angle;
 		float m_anchor_y_angle;
 	public :
-		SceneMouseController(Scene & scene, InputManager & manager);
+		SceneMouseController(Scene & scene);
+		void setInputManager(InputManager & i);
 		void collect(sf::Event & e);
 		void discard(sf::Event & e);
 };
@@ -88,7 +90,11 @@ class SceneMouseController : public Collector<sf::Event &> {
 */
 class Scene {
 	protected :
+		sf::RenderWindow & m_window;
+		sf::View m_view;
 		float m_distance, m_scale, m_x_angle, m_y_angle;
+		MutexDataLock m_scale_lock;
+		MutexDataLock m_angle_lock;
 		OrthogonalCamera m_camera;
 		PrintingRegister * m_register;
 		SceneMouseController m_controller;
@@ -97,17 +103,31 @@ class Scene {
 		static const int DEFAULT_SCENE_SCALE    =   +1;
 		static const int DEFAULT_SCENE_X_ANGLE  =  +45;
 		static const int DEFAULT_SCENE_Y_ANGLE  =  +20;
-		static const int MAX_X_ANGLE 			=  +80;
-		static const int MIN_X_ANGLE 			=  -80;
+		static const int MAX_X_ANGLE 			=  +90;
+		static const int MIN_X_ANGLE 			=  -90;
 
-		Scene(PrintingRegister * printing_register, InputManager & inputManager);
-		Scene(PrintingRegister * printing_register, InputManager & inputManager,
-			  float distance, float scale, float x_angle, float y_angle);
+		Scene(sf::RenderWindow & window,
+			  PrintingRegister * printing_register,
+			  int screen_width, int screen_height);
+		Scene(sf::RenderWindow & window,
+			  PrintingRegister * printing_register,
+			  float distance, float scale, float x_angle, float y_angle,
+			  int screen_width, int screen_height);
+
+		void setInputManager(InputManager & i);
+
+		float getScale();
+		void setScale(float s);
 
 		float getXAngle();
 		float getYAngle();
 		void setXAngle(float x);
 		void setYAngle(float y);
+
+		OrthogonalCamera & getCamera();
+		sf::RenderWindow & getWindow();
+		sf::View & getView();
+		void setView(sf::View view);
 
 		void placeScene();
 };

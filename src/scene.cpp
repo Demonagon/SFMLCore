@@ -74,37 +74,69 @@ SceneObject::placeObject() {
 
 /** Scene **/
 
-Scene::Scene(PrintingRegister * printing_register, InputManager & inputManager) :
-	m_distance (DEFAULT_SCENE_DISTANCE),
-	m_scale       (DEFAULT_SCENE_SCALE),
-	m_x_angle   (DEFAULT_SCENE_X_ANGLE),
-	m_y_angle   (DEFAULT_SCENE_Y_ANGLE),
-	m_camera                         (),
-	m_register      (printing_register),
-	m_controller(*this, inputManager) {
+Scene::Scene(sf::RenderWindow & window,
+			 PrintingRegister * printing_register,
+			  int screen_width, int screen_height) :
+	m_window					  (window),
+	m_view(sf::Rect<float>(0.f, 0.f, screen_width, screen_height)),
+	m_distance    (DEFAULT_SCENE_DISTANCE),
+	m_scale          (DEFAULT_SCENE_SCALE),
+	m_x_angle      (DEFAULT_SCENE_X_ANGLE),
+	m_y_angle      (DEFAULT_SCENE_Y_ANGLE),
+	m_scale_lock	 			        (),
+	m_angle_lock					    (),
+	m_camera (screen_width, screen_height),
+	m_register         (printing_register),
+	m_controller(*this) {
+
+	m_window.setView(m_view);
 
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
 	glClearDepth(1.f);
     glClearColor(0.3f, 0.3f, 0.3f, 0.f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glDepthFunc(GL_LESS);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//glDepthFunc(GL_LESS);
 }
 
-Scene::Scene(PrintingRegister * printing_register, InputManager & inputManager,
-	  float distance, float scale, float x_angle, float y_angle) :
-	m_distance           (distance),
-	m_scale                 (scale),
-	m_x_angle             (x_angle),
-	m_y_angle             (y_angle),
-	m_camera                     (),
-	m_register  (printing_register),
-	m_controller(*this, inputManager) {
+Scene::Scene(sf::RenderWindow & window,
+			 PrintingRegister * printing_register,
+	  float distance, float scale, float x_angle, float y_angle,
+	  int screen_width, int screen_height) :
+	m_window					  			(window),
+	m_view(sf::Rect<float>(0.f, 0.f, screen_width, screen_height)),
+	m_distance             				  (distance),
+	m_scale                        			 (scale),
+	m_x_angle               	 		   (x_angle),
+	m_y_angle               	 		   (y_angle),
+	m_scale_lock	 			   				  (),
+	m_angle_lock	 			   				  (),
+	m_camera 		   (screen_width, screen_height),
+	m_register   	   			 (printing_register),
+	m_controller(*this) {
+	m_window.setView(m_view);
 
-	glClearDepth(1.f);
-    glClearColor(0.3f, 0.3f, 0.3f, 0.f);
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
+	glClearDepth(1.f);
+    glClearColor(0.3f, 0.3f, 0.3f, 0.f);
+}
+
+void
+Scene::setInputManager(InputManager & i) {
+	m_controller.setInputManager(i);
+}
+
+float
+Scene::getScale() {
+	return m_scale;
+}
+
+void
+Scene::setScale(float s) {
+	//m_scale_lock.lock();
+		m_scale = s;
+	//m_scale_lock.unlock();
 }
 
 float
@@ -119,14 +151,38 @@ Scene::getYAngle() {
 
 void
 Scene::setXAngle(float x) {
-	if( x > MAX_X_ANGLE ) x = MAX_X_ANGLE;
-	else if( x < MIN_X_ANGLE ) x = MIN_X_ANGLE;
-	m_x_angle = x;
+	//m_angle_lock.lock();
+		if( x > MAX_X_ANGLE ) x = MAX_X_ANGLE;
+		else if( x < MIN_X_ANGLE ) x = MIN_X_ANGLE;
+		m_x_angle = x;
+	//m_angle_lock.unlock();
 }
 
 void
 Scene::setYAngle(float y) {
-	m_y_angle = y;
+	//m_angle_lock.lock();
+		m_y_angle = y;
+	//m_angle_lock.unlock();
+}
+
+OrthogonalCamera &
+Scene::getCamera() {
+	return m_camera;
+}
+		
+sf::RenderWindow &
+Scene::getWindow() {
+	return m_window;
+}
+
+sf::View &
+Scene::getView() {
+	return m_view;
+}
+
+void
+Scene::setView(sf::View view) {
+	m_view = view;
 }
 
 void
@@ -135,17 +191,15 @@ Scene::placeScene() {
 	m_camera.placeCamera();
 
     glMatrixMode(GL_MODELVIEW);
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     glLoadIdentity();
 
 	glTranslatef(0.f, 0.f, - m_distance);
 
-	glScalef(m_scale, m_scale, 1);
+	glRotatef(m_x_angle, 1.f, 0.f, 0.f);
+	glRotatef(m_y_angle, 0.f, 1.f, 0.f);
 
-	glRotatef(m_y_angle, 1.f, 0.f, 0.f);
-	glRotatef(m_x_angle, 0.f, 1.f, 0.f);
+	glScalef(m_scale, m_scale, 1);
 
 	for(std::list<SceneObject *>::iterator i = m_register->getObjects().begin();
 		i != m_register->getObjects().end();
@@ -156,9 +210,13 @@ Scene::placeScene() {
 
 /** SceneMouseController **/
 
-SceneMouseController::SceneMouseController(Scene & scene, InputManager & manager)
+SceneMouseController::SceneMouseController(Scene & scene)
  : m_scene(scene), m_moving(false), m_x_anchor(0), m_y_anchor(0) {
-	manager.addCollector(*this);
+}
+
+void
+SceneMouseController::setInputManager(InputManager & i) {
+	i.addCollector(*this);
 }
 
 void
@@ -169,6 +227,12 @@ SceneMouseController::collect(sf::Event & e) {
 		m_y_anchor = e.mouseButton.y;
 		m_anchor_x_angle = m_scene.getXAngle();
 		m_anchor_y_angle = m_scene.getYAngle();
+		return;
+	} else if(e.type == sf::Event::MouseButtonReleased) {
+		m_moving = false;
+	} else if(e.type == sf::Event::Resized) {
+		m_scene.getCamera().setDimensions(e.size.width,
+										  e.size.height);
 		return;
 	}
 
