@@ -13,6 +13,7 @@
 #include "collector.h"
 #include "input.h"
 #include "artist.h"
+#include "controller.h"
 
 #include <cmath>
 
@@ -274,37 +275,9 @@ class Cube : public SceneObject {
 		}
 };
 
-class Controller : public Collector<sf::Event&> {
-	private :
-		Artist & m_artist;
-		InputManager & m_i;
-
-	public :
-		Controller(Artist & artist, InputManager & i) :
-			m_artist(artist), m_i(i) {
-			m_i.addCollector(*this);
-		}
-
-		void collect(sf::Event & e) {
-			if (e.type == sf::Event::Closed) {
-				m_i.interruptLoop();
-				m_artist.stop();
-				m_artist.close();
-			}
-			if ((e.type == sf::Event::KeyPressed) && (e.key.code == sf::Keyboard::Escape)) {
-				m_i.interruptLoop();
-				m_artist.stop();
-				m_artist.close();
-			}
-		}
-
-		void discard(sf::Event & e) {}
-};
-
 int scene_main() {
 	Artist artist(1200, 400);
 	InputManager manager(artist.getWindow(), artist.getWindowLock() );
-	artist.setInputManager(manager);
 
 	Cube cube1(1.f, 0.f, 0.f, &artist.getPrintingRegister());
 	Cube cube2(0.f, 1.f, 0.f, &artist.getPrintingRegister());
@@ -317,7 +290,9 @@ int scene_main() {
 	cube2.setScale(.5f);
 	cube3.setScale(.5f);
 
-	Controller controller(artist, manager);
+	ExitController exit_controller(artist, manager);
+	ResizingController size_controller(artist.getScene(), manager);
+	CameraController camera_controller(artist.getScene(), manager);
 
 	artist.start();
 	manager.inputLoop();

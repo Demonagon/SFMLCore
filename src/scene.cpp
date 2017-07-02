@@ -86,8 +86,7 @@ Scene::Scene(sf::RenderWindow & window,
 	m_scale_lock	 			        (),
 	m_angle_lock					    (),
 	m_camera (screen_width, screen_height),
-	m_register         (printing_register),
-	m_controller(*this) {
+	m_register         (printing_register) {
 
 	m_window.setView(m_view);
 
@@ -112,19 +111,13 @@ Scene::Scene(sf::RenderWindow & window,
 	m_scale_lock	 			   				  (),
 	m_angle_lock	 			   				  (),
 	m_camera 		   (screen_width, screen_height),
-	m_register   	   			 (printing_register),
-	m_controller(*this) {
+	m_register   	   			 (printing_register) {
 	m_window.setView(m_view);
 
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
 	glClearDepth(1.f);
     glClearColor(0.3f, 0.3f, 0.3f, 0.f);
-}
-
-void
-Scene::setInputManager(InputManager & i) {
-	m_controller.setInputManager(i);
 }
 
 float
@@ -134,9 +127,7 @@ Scene::getScale() {
 
 void
 Scene::setScale(float s) {
-	//m_scale_lock.lock();
-		m_scale = s;
-	//m_scale_lock.unlock();
+	m_scale = s;
 }
 
 float
@@ -151,18 +142,14 @@ Scene::getYAngle() {
 
 void
 Scene::setXAngle(float x) {
-	//m_angle_lock.lock();
-		if( x > MAX_X_ANGLE ) x = MAX_X_ANGLE;
-		else if( x < MIN_X_ANGLE ) x = MIN_X_ANGLE;
-		m_x_angle = x;
-	//m_angle_lock.unlock();
+	if( x > MAX_X_ANGLE ) x = MAX_X_ANGLE;
+	else if( x < MIN_X_ANGLE ) x = MIN_X_ANGLE;
+	m_x_angle = x;
 }
 
 void
 Scene::setYAngle(float y) {
-	//m_angle_lock.lock();
-		m_y_angle = y;
-	//m_angle_lock.unlock();
+	m_y_angle = y;
 }
 
 OrthogonalCamera &
@@ -207,45 +194,3 @@ Scene::placeScene() {
 		(*i)->placeObject();
 	}
 }
-
-/** SceneMouseController **/
-
-SceneMouseController::SceneMouseController(Scene & scene)
- : m_scene(scene), m_moving(false), m_x_anchor(0), m_y_anchor(0) {
-}
-
-void
-SceneMouseController::setInputManager(InputManager & i) {
-	i.addCollector(*this);
-}
-
-void
-SceneMouseController::collect(sf::Event & e) {
-	if(e.type == sf::Event::MouseButtonPressed) {
-		m_moving = true;
-		m_x_anchor = e.mouseButton.x;
-		m_y_anchor = e.mouseButton.y;
-		m_anchor_x_angle = m_scene.getXAngle();
-		m_anchor_y_angle = m_scene.getYAngle();
-		return;
-	} else if(e.type == sf::Event::MouseButtonReleased) {
-		m_moving = false;
-	} else if(e.type == sf::Event::Resized) {
-		m_scene.getCamera().setDimensions(e.size.width,
-										  e.size.height);
-		return;
-	}
-
-	if( ! m_moving ) return;
-
-	if(e.type != sf::Event::MouseMoved) return;
-
-	int delta_x = e.mouseMove.x - m_x_anchor;
-	int delta_y = e.mouseMove.y - m_y_anchor;
-
-	m_scene.setXAngle(m_anchor_x_angle + delta_y);
-	m_scene.setYAngle(m_anchor_y_angle + delta_x);
-}
-
-void
-SceneMouseController::discard(sf::Event & e) {}

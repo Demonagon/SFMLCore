@@ -63,28 +63,6 @@ class SceneObject : public MetaDataObject {
 };
 
 /**
-* Controlleur qui permet de déplacer la caméra autour de la scène, à la souris.
-* (En vérité c'est la scène qui tourne)
-*/
-
-class Scene;
-
-class SceneMouseController : public Collector<sf::Event &> {
-	protected :
-		Scene & m_scene;
-		bool m_moving;
-		int m_x_anchor;
-		int m_y_anchor;
-		float m_anchor_x_angle;
-		float m_anchor_y_angle;
-	public :
-		SceneMouseController(Scene & scene);
-		void setInputManager(InputManager & i);
-		void collect(sf::Event & e);
-		void discard(sf::Event & e);
-};
-
-/**
 * Représente la scène, a pour tâche de placer la caméra, puis de se déplacer
 * au centre de la vue, puis d'afficher chaque objet.
 */
@@ -97,7 +75,6 @@ class Scene {
 		MutexDataLock m_angle_lock;
 		OrthogonalCamera m_camera;
 		PrintingRegister * m_register;
-		SceneMouseController m_controller;
 	public :
 		static const int DEFAULT_SCENE_DISTANCE = +100;
 		static const int DEFAULT_SCENE_SCALE    =   +1;
@@ -113,8 +90,6 @@ class Scene {
 			  PrintingRegister * printing_register,
 			  float distance, float scale, float x_angle, float y_angle,
 			  int screen_width, int screen_height);
-
-		void setInputManager(InputManager & i);
 
 		float getScale();
 		void setScale(float s);

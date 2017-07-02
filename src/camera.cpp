@@ -37,8 +37,6 @@ OrthogonalCamera::placeCamera() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 
-	std::cout << "width = " << m_width << ", height = " << m_height << std::endl;
-
 	glOrtho(-  m_width/2, +  m_width/2 +  m_width % 2,
 			- m_height/2, + m_height/2 + m_height % 2,
 			m_near, m_far);

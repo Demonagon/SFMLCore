@@ -12,10 +12,6 @@ Artist::Artist(int width, int height) :
 	m_scene(m_window, &m_reg, width, height) {
 }
 
-void
-Artist::setInputManager(InputManager & i) {
-	m_scene.setInputManager(i);
-}
 
 void
 Artist::paint() {

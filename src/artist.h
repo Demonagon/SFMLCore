@@ -22,8 +22,6 @@ class Artist {
 	public :
 		Artist(int width, int height);
 
-		void setInputManager(InputManager & i);
-
 		void paint();
 
 		void loop();
