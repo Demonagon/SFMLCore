@@ -74,45 +74,42 @@ SceneObject::placeObject() {
 
 /** Scene **/
 
-Scene::Scene(sf::RenderWindow & window,
+Scene::Scene(sf::RenderTarget & window,
 			 PrintingRegister * printing_register,
 			  int screen_width, int screen_height) :
 	m_window					  (window),
-	m_view(sf::Rect<float>(0.f, 0.f, screen_width, screen_height)),
-	m_distance    (DEFAULT_SCENE_DISTANCE),
-	m_scale          (DEFAULT_SCENE_SCALE),
-	m_x_angle      (DEFAULT_SCENE_X_ANGLE),
-	m_y_angle      (DEFAULT_SCENE_Y_ANGLE),
-	m_scale_lock	 			        (),
-	m_angle_lock					    (),
+	m_distance	  (DEFAULT_SCENE_DISTANCE),
+	m_scale			 (DEFAULT_SCENE_SCALE),
+	m_x_angle	   (DEFAULT_SCENE_X_ANGLE),
+	m_y_angle	   (DEFAULT_SCENE_Y_ANGLE),
+	m_x_pos							   (0),
+	m_y_pos							   (0),
+	m_scale_lock 						(),
+	m_angle_lock 						(),
 	m_camera (screen_width, screen_height),
-	m_register         (printing_register) {
-
-	m_window.setView(m_view);
+	m_register		   (printing_register) {
 
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
 	glClearDepth(1.f);
     glClearColor(0.3f, 0.3f, 0.3f, 0.f);
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//glDepthFunc(GL_LESS);
 }
 
-Scene::Scene(sf::RenderWindow & window,
+Scene::Scene(sf::RenderTarget & window,
 			 PrintingRegister * printing_register,
 	  float distance, float scale, float x_angle, float y_angle,
 	  int screen_width, int screen_height) :
-	m_window					  			(window),
-	m_view(sf::Rect<float>(0.f, 0.f, screen_width, screen_height)),
+	m_window					  						  (window),
 	m_distance             				  (distance),
 	m_scale                        			 (scale),
 	m_x_angle               	 		   (x_angle),
 	m_y_angle               	 		   (y_angle),
-	m_scale_lock	 			   				  (),
-	m_angle_lock	 			   				  (),
-	m_camera 		   (screen_width, screen_height),
-	m_register   	   			 (printing_register) {
-	m_window.setView(m_view);
+	m_x_pos													   (0),
+	m_y_pos													   (0),
+	m_scale_lock	 			        						(),
+	m_angle_lock					    						(),
+	m_camera 						 (screen_width, screen_height),
+	m_register         						   (printing_register) {
 
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
@@ -152,24 +149,31 @@ Scene::setYAngle(float y) {
 	m_y_angle = y;
 }
 
+float
+Scene::getXPos() {
+	return m_x_pos;
+}
+
+float Scene::getYPos() {
+	return m_y_pos;
+}
+
+void Scene::setXPos(float x) {
+	m_x_pos = x;
+}
+
+void Scene::setYPos(float y) {
+	m_y_pos = y;
+}
+
 OrthogonalCamera &
 Scene::getCamera() {
 	return m_camera;
 }
 		
-sf::RenderWindow &
+sf::RenderTarget &
 Scene::getWindow() {
 	return m_window;
-}
-
-sf::View &
-Scene::getView() {
-	return m_view;
-}
-
-void
-Scene::setView(sf::View view) {
-	m_view = view;
 }
 
 void
@@ -181,7 +185,7 @@ Scene::placeScene() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
 
-	glTranslatef(0.f, 0.f, - m_distance);
+	glTranslatef(m_x_pos, m_y_pos, - m_distance);
 
 	glRotatef(m_x_angle, 1.f, 0.f, 0.f);
 	glRotatef(m_y_angle, 0.f, 1.f, 0.f);

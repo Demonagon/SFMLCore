@@ -60,4 +60,23 @@ class CameraController : public Collector<sf::Event &> {
 		void discard(sf::Event & e);
 };
 
+/**
+* Controleur qui déplace le monde avec le clic gauche de souris
+*/
+
+class MoveController : public Collector<sf::Event &> {
+	protected :
+		Scene & m_scene;
+		bool m_moving;
+		int m_x_anchor;
+		int m_y_anchor;
+		float m_anchor_x_pos;
+		float m_anchor_y_pos;
+	public :
+		MoveController(Scene & scene, InputManager & i);
+
+		void collect(sf::Event & e);
+		void discard(sf::Event & e);
+};
+
 #endif

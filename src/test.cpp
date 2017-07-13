@@ -293,6 +293,7 @@ int scene_main() {
 	ExitController exit_controller(artist, manager);
 	ResizingController size_controller(artist.getScene(), manager);
 	CameraController camera_controller(artist.getScene(), manager);
+	MoveController move_controller(artist.getScene(), manager);
 
 	artist.start();
 	manager.inputLoop();

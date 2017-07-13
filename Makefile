@@ -23,7 +23,7 @@ CC = clang++
 
 INCLUDE = -I/usr/local/include -I/usr/include -I../game-core/lib
 FLAGS = -L/usr/local/lib -L/usr/lib -L../game-core/lib -Wall -std=c++11 -pthread
-LIBS = -lgame-core -lsfml-system -lsfml-graphics -lsfml-window -lsfml-audio -lglut -lGL
+LIBS = -lgame-core -lsfml-system -lsfml-graphics -lsfml-window -lsfml-audio -lGL
 
 #Pour chaque a.c dans CREP, on considère le module a
 RAW_CODE = $(shell echo $(CREP)/*.$(CODE_FORMAT))

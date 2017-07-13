@@ -68,9 +68,8 @@ class SceneObject : public MetaDataObject {
 */
 class Scene {
 	protected :
-		sf::RenderWindow & m_window;
-		sf::View m_view;
-		float m_distance, m_scale, m_x_angle, m_y_angle;
+		sf::RenderTarget & m_window;
+		float m_distance, m_scale, m_x_angle, m_y_angle, m_x_pos, m_y_pos;
 		MutexDataLock m_scale_lock;
 		MutexDataLock m_angle_lock;
 		OrthogonalCamera m_camera;
@@ -83,10 +82,10 @@ class Scene {
 		static const int MAX_X_ANGLE 			=  +90;
 		static const int MIN_X_ANGLE 			=  -90;
 
-		Scene(sf::RenderWindow & window,
+		Scene(sf::RenderTarget & window,
 			  PrintingRegister * printing_register,
 			  int screen_width, int screen_height);
-		Scene(sf::RenderWindow & window,
+		Scene(sf::RenderTarget & window,
 			  PrintingRegister * printing_register,
 			  float distance, float scale, float x_angle, float y_angle,
 			  int screen_width, int screen_height);
@@ -99,10 +98,13 @@ class Scene {
 		void setXAngle(float x);
 		void setYAngle(float y);
 
+		float getXPos();
+		float getYPos();
+		void setXPos(float x);
+		void setYPos(float y);
+
 		OrthogonalCamera & getCamera();
-		sf::RenderWindow & getWindow();
-		sf::View & getView();
-		void setView(sf::View view);
+		sf::RenderTarget & getWindow();
 
 		void placeScene();
 };

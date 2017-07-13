@@ -54,6 +54,8 @@ CameraController::CameraController(Scene & scene, InputManager & i)
 void
 CameraController::collect(sf::Event & e) {
 	if(e.type == sf::Event::MouseButtonPressed) {
+		if( e.mouseButton.button != sf::Mouse::Button::Right ) return;
+
 		m_moving = true;
 		m_x_anchor = e.mouseButton.x;
 		m_y_anchor = e.mouseButton.y;
@@ -61,6 +63,8 @@ CameraController::collect(sf::Event & e) {
 		m_anchor_y_angle = m_scene.getYAngle();
 		return;
 	} else if(e.type == sf::Event::MouseButtonReleased) {
+		if( e.mouseButton.button != sf::Mouse::Button::Right ) return;
+
 		m_moving = false;
 	}
 
@@ -77,3 +81,42 @@ CameraController::collect(sf::Event & e) {
 
 void
 CameraController::discard(sf::Event & e) {}
+
+
+/** MoveController **/
+
+MoveController::MoveController(Scene & scene, InputManager & i)
+ : m_scene(scene), m_moving(false), m_x_anchor(0), m_y_anchor(0) {
+	i.addCollector(*this);
+}
+
+void
+MoveController::collect(sf::Event & e) {
+	if(e.type == sf::Event::MouseButtonPressed) {
+		if( e.mouseButton.button != sf::Mouse::Button::Left ) return;
+
+		m_moving = true;
+		m_x_anchor = e.mouseButton.x;
+		m_y_anchor = e.mouseButton.y;
+		m_anchor_x_pos = m_scene.getXPos();
+		m_anchor_y_pos = m_scene.getYPos();
+		return;
+	} else if(e.type == sf::Event::MouseButtonReleased) {
+		if( e.mouseButton.button != sf::Mouse::Button::Left ) return;
+
+		m_moving = false;
+	}
+
+	if( ! m_moving ) return;
+
+	if(e.type != sf::Event::MouseMoved) return;
+
+	int delta_x = e.mouseMove.x - m_x_anchor;
+	int delta_y = e.mouseMove.y - m_y_anchor;
+
+	m_scene.setXPos(m_anchor_x_pos + delta_x);
+	m_scene.setYPos(m_anchor_y_pos - delta_y);
+}
+
+void
+MoveController::discard(sf::Event & e) {}
